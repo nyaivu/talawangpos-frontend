@@ -1,5 +1,7 @@
 // app/[business_slug]/layout.tsx
 import { createClient } from "@/lib/supabase/server";
+import Image from "next/image";
+import Link from "next/link";
 import { redirect, notFound } from "next/navigation";
 
 export default async function BusinessLayout({
@@ -51,10 +53,39 @@ export default async function BusinessLayout({
   const businessSlugFromDB = business?.slug;
 
   return (
-    <section>
-      <nav>Welcome to {businessName}</nav>
-      {businessSlugFromDB}
-      {children}
-    </section>
+    <div className="min-h-screen bg-foreground py-4 grid grid-cols-[max-content_5fr_2fr]">
+      <nav className="text-background flex flex-col gap-4 px-4">
+        <Link href={`/${business_slug}/dashboard`}>
+          <Image
+            className="w-auto h-12"
+            src="/logo.svg"
+            width={100}
+            height={100}
+            alt="Logo"
+          />
+        </Link>
+        <Link href={`/${business_slug}/dashboard`}>
+          <Image
+            className="w-auto h-12"
+            src="/logo.svg"
+            width={100}
+            height={100}
+            alt="Logo"
+          />
+        </Link>
+        <Link href={`/${business_slug}/dashboard`}>
+          <Image
+            className="w-auto h-12"
+            src="/logo.svg"
+            width={100}
+            height={100}
+            alt="Logo"
+          />
+        </Link>
+      </nav>
+      <main className="bg-background rounded-md p-2">{children}</main>
+
+      <div className="text-background px-4">Current Order</div>
+    </div>
   );
 }

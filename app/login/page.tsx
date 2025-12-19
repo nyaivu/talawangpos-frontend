@@ -73,15 +73,13 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-md space-y-8 rounded-xl bg-white p-8 shadow-lg">
+    <div className="flex min-h-screen items-center justify-center bg-foreground px-4">
+      <div className="w-full max-w-md rounded-xl bg-background p-8 shadow-lg">
         <div className="text-center">
           <h2 className="text-3xl font-bold tracking-tight text-gray-900">
             Sign in to POS
           </h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Enter your cashier credentials
-          </p>
+          <p className="mt-2 text-sm text-gray-600">Enter your credentials</p>
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleLogin}>
@@ -99,7 +97,7 @@ export default function LoginPage() {
               <input
                 type="email"
                 required
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-primary"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -111,7 +109,7 @@ export default function LoginPage() {
               <input
                 type="password"
                 required
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-primary"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
@@ -121,7 +119,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-md bg-indigo-600 py-2 px-4 text-white hover:bg-indigo-700 focus:outline-none disabled:opacity-50"
+            className="w-full rounded-md bg-primary py-2 px-4 text-background font-semibold hover:bg-primary focus:outline-none disabled:opacity-50"
           >
             {loading ? "Signing in..." : "Sign In"}
           </button>

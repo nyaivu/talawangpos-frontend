@@ -41,9 +41,15 @@ export async function updateSession(request: NextRequest) {
 
   const user = data?.claims;
 
+  // This regex matches /any-slug/dashboard and everything after it
+  const isDashboardRoute = /^\/[^\/]+\/dashboard/.test(
+    request.nextUrl.pathname
+  );
+
   if (
     !user &&
-    request.nextUrl.pathname.startsWith("/dashboard")
+    request.nextUrl.pathname.startsWith("/dashboard") &&
+    isDashboardRoute
     // !request.nextUrl.pathname.startsWith("/login") &&
     // !request.nextUrl.pathname.startsWith("/auth")
   ) {
