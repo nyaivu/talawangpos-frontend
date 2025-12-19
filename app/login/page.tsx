@@ -68,7 +68,15 @@ export default function LoginPage() {
       ? profile.businesses[0].slug
       : profile.businesses.slug;
 
-    router.push(`/${slug}/dashboard`);
+    const host = window.location.host; // e.g., "localhost:3000" or "sirkasir.com"
+    const protocol = window.location.protocol; // "http:" or "https:"
+
+    if (!host.startsWith(`${slug}.`)) {
+      window.location.href = `${protocol}//${slug}.${host}/dashboard`;
+    } else {
+      // If we are already on the correct subdomain, a simple push works
+      router.push("/dashboard");
+    }
     router.refresh();
   };
 

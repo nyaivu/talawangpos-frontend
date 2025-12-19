@@ -6,8 +6,6 @@ export async function updateSession(request: NextRequest) {
     request,
   });
 
-  // With Fluid compute, don't put this client in a global environment
-  // variable. Always create a new one on each request.
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
@@ -24,53 +22,72 @@ export async function updateSession(request: NextRequest) {
             request,
           });
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
+            supabaseResponse.cookies.set(name, value, {
+              ...options,
+              // Allows session to persist across subdomains
+              domain:
+                process.env.NODE_ENV === "production"
+                  ? ".sirkasir.com"
+                  : "localhost",
+            })
           );
         },
       },
     }
   );
 
-  // Do not run code between createServerClient and
-  // supabase.auth.getClaims(). A simple mistake could make it very hard to debug
-  // issues with users being randomly logged out.
-
-  // IMPORTANT: If you remove getClaims() and you use server-side rendering
-  // with the Supabase client, your users may be randomly logged out.
+  // Refresh session and get user data
   const { data } = await supabase.auth.getClaims();
-
   const user = data?.claims;
 
-  // This regex matches /any-slug/dashboard and everything after it
-  const isDashboardRoute = /^\/[^\/]+\/dashboard/.test(
-    request.nextUrl.pathname
-  );
+  const url = request.nextUrl.clone();
+  const hostname = request.headers.get("host") || "";
+  const pathname = url.pathname;
 
-  if (
-    !user &&
-    request.nextUrl.pathname.startsWith("/dashboard") &&
-    isDashboardRoute
-    // !request.nextUrl.pathname.startsWith("/login") &&
-    // !request.nextUrl.pathname.startsWith("/auth")
-  ) {
-    // no user, potentially respond by redirecting the user to the login page
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    return NextResponse.redirect(url);
+  const rootDomain =
+    process.env.NODE_ENV === "production" ? "sirkasir.com" : "localhost:3000";
+
+  const subdomain = hostname.endsWith(`.${rootDomain}`)
+    ? hostname.replace(`.${rootDomain}`, "")
+    : null;
+
+  // Paths that should NOT be rewritten to the [business_slug] folder
+  const publicPaths = [
+    "/login",
+    "/auth",
+    "/api",
+    "/_next",
+    "/favicon.ico",
+    "/logo.svg",
+  ];
+  const isPublicPath = publicPaths.some((path) => pathname.startsWith(path));
+
+  // 1. SUBDOMAIN REWRITE LOGIC
+  if (subdomain && subdomain !== "www") {
+    // If it's a public path, don't rewrite it (e.g., stay at /login)
+    if (isPublicPath) {
+      return supabaseResponse;
+    }
+
+    // Rewrite internal path: dnyonya.localhost:3000/dashboard -> /dnyonya/dashboard
+    url.pathname = `/${subdomain}${pathname}`;
+
+    // Auth Guard: Redirect to login if trying to access dashboard while logged out
+    const isDashboardRoute = url.pathname.includes("/dashboard");
+    if (!user && isDashboardRoute) {
+      const loginUrl = new URL("/login", request.url);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    return NextResponse.rewrite(url);
   }
 
-  // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
-  // creating a new response object with NextResponse.next() make sure to:
-  // 1. Pass the request in it, like so:
-  //    const myNewResponse = NextResponse.next({ request })
-  // 2. Copy over the cookies, like so:
-  //    myNewResponse.cookies.setAll(supabaseResponse.cookies.getAll())
-  // 3. Change the myNewResponse object to fit your needs, but avoid changing
-  //    the cookies!
-  // 4. Finally:
-  //    return myNewResponse
-  // If this is not done, you may be causing the browser and server to go out
-  // of sync and terminate the user's session prematurely!
+  // 2. ROOT DOMAIN LOGIC
+  // Prevent logged-out users from accessing the root /dashboard if they aren't on a subdomain
+  if (!user && pathname.startsWith("/dashboard")) {
+    const loginUrl = new URL("/login", request.url);
+    return NextResponse.redirect(loginUrl);
+  }
 
   return supabaseResponse;
 }
