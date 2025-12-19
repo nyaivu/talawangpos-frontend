@@ -53,7 +53,7 @@ export default async function BusinessLayout({
   const businessSlugFromDB = business?.slug;
 
   return (
-    <div className="min-h-screen bg-foreground py-4 grid grid-cols-[max-content_5fr_2fr]">
+    <div className="min-h-screen bg-foreground py-4 grid grid-cols-[max-content_5fr_3fr] md:grid-cols-[max-content_7fr_2fr]">
       <nav className="text-background flex flex-col gap-4 px-4">
         <Link href={`/${business_slug}/dashboard`}>
           <Image
