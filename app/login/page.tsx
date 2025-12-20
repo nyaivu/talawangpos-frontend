@@ -72,10 +72,10 @@ export default function LoginPage() {
     const protocol = window.location.protocol; // "http:" or "https:"
 
     if (!host.startsWith(`${slug}.`)) {
-      window.location.href = `${protocol}//${slug}.${host}/dashboard`;
+      window.location.href = `${protocol}//${slug}.${host}/`;
     } else {
       // If we are already on the correct subdomain, a simple push works
-      router.push("/dashboard");
+      router.push("/");
     }
     router.refresh();
   };
