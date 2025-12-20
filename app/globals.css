@@ -13,7 +13,7 @@
   --color-foreground: var(--foreground);
   --color-primary: var(--primary);
   --color-secondary: var(--secondary);
-  --color-accent: var(--accent);
+  --color-accent: var(--color-green-600);
   --font-sans: var(--font-inter);
 }
 

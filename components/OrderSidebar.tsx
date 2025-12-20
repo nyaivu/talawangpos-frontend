@@ -3,6 +3,8 @@
 import { useOrderStore } from "@/stores/useOrderStore";
 import { useHydratedStore } from "@/hooks/useHydratedStore"; // Import your new hook
 import CheckoutButton from "./CheckoutButton";
+import { useState } from "react";
+import CheckoutModal from "./CheckoutModal";
 
 interface OrderSidebarProps {
   businessId: string;
@@ -19,6 +21,7 @@ export default function OrderSidebar({
   const items = useHydratedStore(useOrderStore, (s) => s.items);
   const getTotal = useOrderStore((s) => s.getTotal); // Functions are safe to call directly
   const updateQuantity = useOrderStore((s) => s.updateQuantity); // Functions are safe to call directly
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // If items is undefined, we are still hydrating
   if (!items) {
@@ -67,12 +70,21 @@ export default function OrderSidebar({
           <span>Total</span>
           <span>IDR {getTotal().toLocaleString("id-ID")}</span>
         </div>
-        <CheckoutButton
-          businessId={businessId}
-          storeId={storeId}
-          userId={userId}
-        />
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="w-full py-4 bg-black text-white rounded-2xl font-bold"
+        >
+          Checkout (Rp {getTotal().toLocaleString()})
+        </button>
       </div>
+
+      <CheckoutModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        businessId={businessId}
+        storeId={storeId}
+        userId={userId}
+      />
     </div>
   );
 }
