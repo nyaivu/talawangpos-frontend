@@ -1,4 +1,5 @@
 // app/[business_slug]/layout.tsx
+import OrderSidebar from "@/components/OrderSidebar";
 import { createClient } from "@/lib/supabase/server";
 import Image from "next/image";
 import Link from "next/link";
@@ -45,15 +46,15 @@ export default async function BusinessLayout({
     return notFound();
   }
 
-  const business = Array.isArray(profile?.businesses)
-    ? profile.businesses[0]
-    : profile?.businesses;
+  // const business = Array.isArray(profile?.businesses)
+  //   ? profile.businesses[0]
+  //   : profile?.businesses;
 
-  const businessName = business?.name || "Store";
-  const businessSlugFromDB = business?.slug;
+  // const businessName = business?.name || "Store";
+  // const businessSlugFromDB = business?.slug;
 
   return (
-    <div className="min-h-screen bg-foreground py-4 grid grid-cols-[max-content_5fr_3fr] md:grid-cols-[max-content_7fr_2fr]">
+    <div className="min-h-screen bg-foreground py-4 grid grid-cols-[max-content_5fr_3fr] md:grid-cols-[max-content_5fr_2fr]">
       <nav className="text-background flex flex-col gap-4 px-4">
         <Link href={`/${business_slug}/dashboard`}>
           <Image
@@ -85,7 +86,7 @@ export default async function BusinessLayout({
       </nav>
       <main className="bg-background rounded-md p-2">{children}</main>
 
-      <div className="text-background px-4">Current Order</div>
+      <OrderSidebar />
     </div>
   );
 }
