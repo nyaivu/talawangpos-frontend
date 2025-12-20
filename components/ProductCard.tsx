@@ -55,6 +55,8 @@ export default function ProductCard({ product }: ProductCardProps) {
             {new Intl.NumberFormat("id-ID", {
               style: "currency",
               currency: "IDR",
+              maximumFractionDigits: 0,
+              minimumFractionDigits: 0,
             }).format(product.base_price)}
           </p>
         </div>
