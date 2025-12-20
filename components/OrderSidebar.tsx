@@ -2,8 +2,19 @@
 
 import { useOrderStore } from "@/stores/useOrderStore";
 import { useHydratedStore } from "@/hooks/useHydratedStore"; // Import your new hook
+import CheckoutButton from "./CheckoutButton";
 
-export default function OrderSidebar() {
+interface OrderSidebarProps {
+  businessId: string;
+  storeId: string;
+  userId: string;
+}
+
+export default function OrderSidebar({
+  businessId,
+  storeId,
+  userId,
+}: OrderSidebarProps) {
   // Use the hydrated hook to safely get items and total
   const items = useHydratedStore(useOrderStore, (s) => s.items);
   const getTotal = useOrderStore((s) => s.getTotal); // Functions are safe to call directly
@@ -31,14 +42,14 @@ export default function OrderSidebar() {
               <div className="flex flex-row items-center gap-2">
                 <button
                   onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                  className="w-6 bg-primary rounded-full aspect-square hover:bg-secondary"
+                  className="cursor-pointer w-6 bg-primary rounded-full aspect-square hover:bg-secondary"
                 >
                   -
                 </button>
                 <p className="text-gray-100">x{item.quantity}</p>
                 <button
                   onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                  className="w-6 bg-primary rounded-full aspect-square hover:bg-secondary"
+                  className="cursor-pointer w-6 bg-primary rounded-full aspect-square hover:bg-secondary"
                 >
                   +
                 </button>
@@ -51,11 +62,16 @@ export default function OrderSidebar() {
         ))}
       </div>
 
-      <div className="border-t pt-4 mt-4">
+      <div className="flex flex-col gap-4 border-t pt-4 mt-4">
         <div className="flex justify-between font-bold text-lg">
           <span>Total</span>
           <span>IDR {getTotal().toLocaleString("id-ID")}</span>
         </div>
+        <CheckoutButton
+          businessId={businessId}
+          storeId={storeId}
+          userId={userId}
+        />
       </div>
     </div>
   );

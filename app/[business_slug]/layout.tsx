@@ -21,23 +21,17 @@ export default async function BusinessLayout({
 
   if (!user) redirect("/login");
 
-  // 1. Fetch the business based on the URL slug
-  // 2. Cross-reference with the user's staff_profile
   const { data: profile, error } = await supabase
     .from("staff_profiles")
     .select(
       `
       business_id,
+      store_id,
       role,
-      businesses!inner (
-        id,
-        name,
-        slug
-      )
+      full_name
     `
     )
-    .eq("id", user.id)
-    .eq("businesses.slug", business_slug)
+    .eq("id", user.id) // staff_profiles.id usually matches auth.users.id
     .single();
 
   if (error || !profile) {
@@ -45,13 +39,6 @@ export default async function BusinessLayout({
     console.error(error.message);
     return notFound();
   }
-
-  // const business = Array.isArray(profile?.businesses)
-  //   ? profile.businesses[0]
-  //   : profile?.businesses;
-
-  // const businessName = business?.name || "Store";
-  // const businessSlugFromDB = business?.slug;
 
   return (
     <div className="min-h-screen bg-foreground py-4 grid grid-cols-[max-content_5fr_3fr] md:grid-cols-[max-content_5fr_2fr]">
@@ -86,7 +73,11 @@ export default async function BusinessLayout({
       </nav>
       <main className="bg-background rounded-md p-2">{children}</main>
 
-      <OrderSidebar />
+      <OrderSidebar
+        businessId={profile.business_id}
+        storeId={profile.store_id}
+        userId={user.id}
+      />
     </div>
   );
 }
