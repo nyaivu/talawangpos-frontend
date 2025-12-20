@@ -1,5 +1,4 @@
-import LogoutButton from "@/components/LogoutButton";
-import ProductGrid from "@/components/PorductGrid";
+import ProductGrid from "@/components/ProductGrid";
 
 const BusinessDashboardPage = async ({
   params,
@@ -15,7 +14,6 @@ const BusinessDashboardPage = async ({
   return (
     <div>
       <ProductGrid business_slug={business_slug} categoryId={categoryId} />
-      <LogoutButton />
     </div>
   );
 };

@@ -23,7 +23,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   return (
     <button onClick={handleAdd}>
       <div
-        className={`relative flex flex-col border rounded-xl overflow-hidden bg-white shadow-sm transition-all ${
+        className={`relative flex flex-col items-start border rounded-xl overflow-hidden bg-white shadow-sm transition-all ${
           isOutOfStock ? "opacity-60 grayscale" : "hover:shadow-md"
         }`}
       >
@@ -45,10 +45,10 @@ export default function ProductCard({ product }: ProductCardProps) {
             width={400}
             height={400}
             alt={product.name}
-            className="h-48 object-cover object-center"
+            className="h-full object-cover object-center"
           />
         </div>
-        <div className="p-2">
+        <div className="p-2 flex flex-col items-start">
           <p className="text-xs text-gray-500">{product.category?.name}</p>
           <h3 className="font-semibold text-sm truncate">{product.name}</h3>
           <p className="text-primary font-bold mt-1">

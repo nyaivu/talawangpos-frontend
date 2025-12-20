@@ -2,7 +2,6 @@
 
 import { useOrderStore } from "@/stores/useOrderStore";
 import { useHydratedStore } from "@/hooks/useHydratedStore"; // Import your new hook
-import CheckoutButton from "./CheckoutButton";
 import { useState } from "react";
 import CheckoutModal from "./CheckoutModal";
 
@@ -72,7 +71,7 @@ export default function OrderSidebar({
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="w-full py-4 bg-black text-white rounded-2xl font-bold"
+          className="w-full py-4 bg-primary text-white rounded-lg font-bold"
         >
           Checkout (Rp {getTotal().toLocaleString()})
         </button>
