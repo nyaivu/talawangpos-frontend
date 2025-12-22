@@ -10,7 +10,7 @@ export default async function BusinessLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: { business_slug: string };
+  params: Promise<{ business_slug: string }>;
 }) {
   const unwrappedParams = await params;
   const business_slug = unwrappedParams.business_slug;
