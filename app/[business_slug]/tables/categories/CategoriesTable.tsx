@@ -47,6 +47,7 @@ export default function CategoriesTable({
         setEditingId(null);
       } catch (err) {
         alert("Failed to update");
+        console.error(err);
       }
     },
     [editValue, businessSlug]
@@ -124,6 +125,7 @@ export default function CategoriesTable({
     [editingId, editValue, businessSlug, handleUpdate] // handleUpdate is now a stable dependency
   );
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data,
     columns,

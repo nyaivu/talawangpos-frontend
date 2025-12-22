@@ -19,3 +19,16 @@ export interface CategoryRow {
     slug: string;
   }[];
 }
+
+export interface ProductRow {
+  id: string;
+  name: string;
+  base_price: number;
+  stock: number;
+  category_id: string;
+  business_id: string;
+  image_url?: string | null;
+  categories?: {
+    name: string;
+  } | null;
+}

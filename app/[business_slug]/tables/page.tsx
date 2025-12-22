@@ -43,23 +43,17 @@ export default async function TablesIndexPage({
       href: `/tables/categories`,
       icon: <LayoutGrid className="w-6 h-6 text-blue-500" />,
     },
-    {
-      title: "Staff Members",
-      description: "Manage employee access and profiles.",
-      href: `/tables/staff`,
-      icon: <Users className="w-6 h-6 text-green-500" />,
-    },
+    // {
+    //   title: "Staff Members",
+    //   description: "Manage employee access and profiles.",
+    //   href: `/tables/staff`,
+    //   icon: <Users className="w-6 h-6 text-green-500" />,
+    // },
     {
       title: "Products",
       description: "Inventory management and pricing.",
       href: `/tables/products`,
       icon: <Package className="w-6 h-6 text-purple-500" />,
-    },
-    {
-      title: "Transactions",
-      description: "View sales history and order details.",
-      href: `/tables/transactions`,
-      icon: <ShoppingCart className="w-6 h-6 text-orange-500" />,
     },
   ];
 

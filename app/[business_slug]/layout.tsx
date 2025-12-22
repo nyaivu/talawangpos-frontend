@@ -75,7 +75,7 @@ export default async function BusinessLayout({
             />
           </svg>
         </Link>
-        <Link href={`/${business_slug}/dashboard`}>
+        <Link href="/tables">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
