@@ -9,3 +9,13 @@ export interface Product {
     name: string;
   } | null;
 }
+
+export interface CategoryRow {
+  id: string;
+  name: string;
+  business_id?: string;
+  created_at?: string;
+  businesses: {
+    slug: string;
+  }[];
+}

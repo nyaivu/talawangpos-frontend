@@ -28,43 +28,46 @@ export default function OrderSidebar({
   }
 
   return (
-    <div className="border-l p-4 flex flex-col h-full text-background">
+    <div className="relative p-4 flex flex-col h-full text-background">
       <div className="">
         <h2 className="text-xl font-bold mb-4">Current Order</h2>
       </div>
 
-      <div className="flex-1 overflow-y-auto space-y-4">
+      <div className="flex-1  space-y-4 overflow-y-scroll">
         {items.map((item) => (
           <div
             key={item.id}
-            className="flex justify-between items-center text-sm "
+            className="flex justify-between bg-gray-950 rounded-md p-4 items-center text-sm "
           >
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col w-full gap-1">
               <p className="font-medium">{item.name}</p>
-              <div className="flex flex-row items-center gap-2">
-                <button
-                  onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                  className="cursor-pointer w-6 bg-primary rounded-full aspect-square hover:bg-secondary"
-                >
-                  -
-                </button>
-                <p className="text-gray-100">x{item.quantity}</p>
-                <button
-                  onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                  className="cursor-pointer w-6 bg-primary rounded-full aspect-square hover:bg-secondary"
-                >
-                  +
-                </button>
+              <div className="w-full flex flex-row justify-between items-center">
+                <p className="font-bold text-lg">
+                  IDR{" "}
+                  {(item.base_price * item.quantity).toLocaleString("id-ID")}
+                </p>
+                <div className="flex flex-row bg-gray-300 text-foreground font-semibold items-center rounded-full p-1 gap-2">
+                  <button
+                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                    className="cursor-pointer w-6 bg-background rounded-full aspect-square hover:bg-secondary"
+                  >
+                    -
+                  </button>
+                  <p className="">x{item.quantity}</p>
+                  <button
+                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                    className="cursor-pointer w-6 bg-background rounded-full aspect-square hover:bg-secondary"
+                  >
+                    +
+                  </button>
+                </div>
               </div>
             </div>
-            <p className="font-bold">
-              IDR {(item.base_price * item.quantity).toLocaleString("id-ID")}
-            </p>
           </div>
         ))}
       </div>
 
-      <div className="flex flex-col gap-4 border-t pt-4 mt-4">
+      <div className="inset-x-0 bottom-0 flex flex-col gap-4 border-t pt-4 mt-4">
         <div className="flex justify-between font-bold text-lg">
           <span>Total</span>
           <span>IDR {getTotal().toLocaleString("id-ID")}</span>

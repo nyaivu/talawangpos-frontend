@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Product } from "@/interfaces/product";
+import { Product } from "@/interfaces/types";
 import ProductCard from "./ProductCard";
 
 export default function FilterableProductGrid({

@@ -1,7 +1,7 @@
 // store/useOrderStore.ts
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { Product } from "@/interfaces/product";
+import { Product } from "@/interfaces/types";
 
 interface OrderItem extends Product {
   quantity: number;

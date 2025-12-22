@@ -1,6 +1,6 @@
 // components/ProductGrid.tsx
 import { createClient } from "@/lib/supabase/server";
-import { Product } from "@/interfaces/product";
+import { Product } from "@/interfaces/types";
 import ProductCard from "./ProductCard";
 import CategoryCapsules from "./CategoryCapsules";
 
@@ -11,7 +11,7 @@ interface SupabaseProductResponse {
   image_url: string | null;
   stock: number;
   track_inventory: boolean;
-  category_id: string; // Ensure this is here for strict checking
+  category_id: string;
   category: { name: string } | { name: string }[] | null;
 }
 
@@ -32,9 +32,6 @@ export default async function ProductGrid({
 
   const categories = catData || [];
 
-  // 2. Build the Product Query
-  // We remove businesses!inner from select to keep it clean,
-  // but we keep it in the filter to ensure data belongs to this slug.
   let query = supabase
     .from("products")
     .select(

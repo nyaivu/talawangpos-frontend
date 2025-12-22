@@ -1,7 +1,7 @@
 // components/ProductCard.tsx
 "use client";
 
-import { Product } from "@/interfaces/product";
+import { Product } from "@/interfaces/types";
 import { useOrderStore } from "@/stores/useOrderStore";
 import Image from "next/image";
 

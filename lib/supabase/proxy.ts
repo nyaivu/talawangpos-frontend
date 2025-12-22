@@ -8,7 +8,7 @@ export async function updateSession(request: NextRequest) {
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!, // Use ANON_KEY here
     {
       cookies: {
         getAll() {
@@ -24,11 +24,11 @@ export async function updateSession(request: NextRequest) {
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, {
               ...options,
-              // Allows session to persist across subdomains
+              // Critical: Using undefined for localhost allows subdomains to share the cookie
               domain:
                 process.env.NODE_ENV === "production"
                   ? ".sirkasir.com"
-                  : "localhost",
+                  : undefined,
             })
           );
         },
@@ -36,9 +36,11 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // Refresh session and get user data
-  const { data } = await supabase.auth.getClaims();
-  const user = data?.claims;
+  // FIX 1: Use getUser() instead of getClaims()
+  // This verifies the user session and allows RLS to function in Server Components
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   const url = request.nextUrl.clone();
   const hostname = request.headers.get("host") || "";
@@ -51,7 +53,6 @@ export async function updateSession(request: NextRequest) {
     ? hostname.replace(`.${rootDomain}`, "")
     : null;
 
-  // Paths that should NOT be rewritten to the [business_slug] folder
   const publicPaths = [
     "/login",
     "/auth",
@@ -64,7 +65,6 @@ export async function updateSession(request: NextRequest) {
 
   // 1. SUBDOMAIN REWRITE LOGIC
   if (subdomain && subdomain !== "www") {
-    // If it's a public path, don't rewrite it (e.g., stay at /login)
     if (isPublicPath) {
       return supabaseResponse;
     }
@@ -72,18 +72,21 @@ export async function updateSession(request: NextRequest) {
     // Rewrite internal path: dnyonya.localhost:3000/dashboard -> /dnyonya/dashboard
     url.pathname = `/${subdomain}${pathname}`;
 
-    // Auth Guard: Redirect to login if trying to access dashboard while logged out
-    const isDashboardRoute = url.pathname.includes("/dashboard");
-    if (!user && isDashboardRoute) {
+    // FIX 2: Protected Route Logic
+    // If there is no user and the path is NOT public, redirect to login
+    if (!user) {
       const loginUrl = new URL("/login", request.url);
       return NextResponse.redirect(loginUrl);
     }
 
-    return NextResponse.rewrite(url);
+    return NextResponse.rewrite(url, {
+      request: {
+        headers: request.headers,
+      },
+    });
   }
 
   // 2. ROOT DOMAIN LOGIC
-  // Prevent logged-out users from accessing the root /dashboard if they aren't on a subdomain
   if (!user && pathname.startsWith("/dashboard")) {
     const loginUrl = new URL("/login", request.url);
     return NextResponse.redirect(loginUrl);
