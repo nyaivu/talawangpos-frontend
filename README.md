@@ -1,5 +1,5 @@
 # TalawangPOS
-TalawangPOS is a point of sale web app that is built to handle multiple businesses such as cafes and restaurants at the same time.
+TalawangPOS is a point of sale web app that is built to handle multiple businesses such as cafes and restaurants at the same time. 
 
 ## Features
 ### 1. Multi-tenancy
@@ -10,3 +10,7 @@ TalawangPOS is a point of sale web app that is built to handle multiple business
    Built to suit the needs of most businesses, products and categories can be anything and in any language.
 ### 4. Midtrans Implementation (WIP)
   Built-in Midtrans integration by storing each business' midtrans merchant ID and creating a payment request in the orders page. Can be done right after customer has ordered or when they are about to leave. 
+
+## Tech Stack
+### 1. Next JS
+### 2. SupaBase
