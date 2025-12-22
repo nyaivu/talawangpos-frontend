@@ -27,7 +27,7 @@ export async function updateSession(request: NextRequest) {
               // Critical: Using undefined for localhost allows subdomains to share the cookie
               domain:
                 process.env.NODE_ENV === "production"
-                  ? ".sirkasir.com"
+                  ? ".talawangpos.site"
                   : undefined,
             })
           );
@@ -47,7 +47,9 @@ export async function updateSession(request: NextRequest) {
   const pathname = url.pathname;
 
   const rootDomain =
-    process.env.NODE_ENV === "production" ? "sirkasir.com" : "localhost:3000";
+    process.env.NODE_ENV === "production"
+      ? "talawangpos.site"
+      : "localhost:3000";
 
   const subdomain = hostname.endsWith(`.${rootDomain}`)
     ? hostname.replace(`.${rootDomain}`, "")
