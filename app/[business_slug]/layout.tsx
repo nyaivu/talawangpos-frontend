@@ -41,8 +41,8 @@ export default async function BusinessLayout({
   }
 
   return (
-    <div className="min-h-screen bg-foreground py-4 grid grid-cols-[max-content_5fr_3fr] md:grid-cols-[max-content_5fr_2fr]">
-      <nav className="text-background flex flex-col items-center gap-8 px-4 py-2">
+    <div className="h-screen w-full bg-foreground py-4 grid grid-cols-[max-content_5fr_20rem] grid-rows-[1fr] overflow-hidden">
+      <nav className="w-20 h-screen text-background flex flex-col items-center gap-8 px-4 py-2">
         {/* Home Button */}
         <Link href="/">
           <svg
@@ -91,10 +91,11 @@ export default async function BusinessLayout({
             />
           </svg>
         </Link>
-
         <LogoutButton />
       </nav>
-      <main className="bg-background rounded-md p-2">{children}</main>
+      <main className="h-full bg-background rounded-md p-2 overflow-y-auto min-h-0 custom-scrollbar">
+        {children}
+      </main>
 
       <OrderSidebar
         businessId={profile.business_id}

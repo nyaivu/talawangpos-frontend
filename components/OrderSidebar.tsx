@@ -28,7 +28,7 @@ export default function OrderSidebar({
   }
 
   return (
-    <div className="relative p-4 flex flex-col h-full text-background">
+    <div className="fixed top-0 right-0 w-80 p-4 flex flex-col h-full text-background">
       <div className="">
         <h2 className="text-xl font-bold mb-4">Current Order</h2>
       </div>
