@@ -85,7 +85,7 @@ export default function CreateProductModal({
               <label className="text-sm font-semibold">Price</label>
               <input
                 required
-                name="price"
+                name="base_price"
                 type="number"
                 placeholder="0"
                 className="w-full border rounded-lg p-2"

@@ -50,7 +50,7 @@ export default function Home() {
 
       <main className="bg-background text-foreground">
         {/* ================= HERO ================= */}
-        <section className="relative">
+        <section className="relative ">
           <Swiper
             modules={[Pagination, Navigation]}
             pagination={{ clickable: true }}
@@ -115,7 +115,8 @@ function HeroContent({
   bgImage,
   textColor,
   highlightClass,
-}: any) {
+}: // eslint-disable-next-line @typescript-eslint/no-explicit-any
+any) {
   return (
     <div
       className="relative flex h-full items-center px-6 pt-20"
