@@ -88,7 +88,7 @@ export async function updateProductWithImage(
     .from("products")
     .update({
       name: formData.get("name") as string,
-      base_price: parseFloat(formData.get("price") as string),
+      base_price: parseFloat(formData.get("base_price") as string),
       stock: parseInt(formData.get("stock") as string),
       category_id: formData.get("category_id") as string,
       image_url: imageUrl,
