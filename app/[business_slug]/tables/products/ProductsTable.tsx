@@ -15,7 +15,8 @@ import { ProductRow } from "@/interfaces/types";
 const columnHelper = createColumnHelper<ProductRow>();
 
 /**
- * Stable Input component handles its own local state to prevent focus jumping.
+ * FIX 1: Isolated Input Component
+ * Manages its own focus and local state to prevent jumping.
  */
 const StableInput = memo(({ initialValue, onSave, type = "text" }: any) => {
   const [localValue, setLocalValue] = useState(initialValue);
@@ -44,10 +45,10 @@ export default function ProductsTable({
   categories,
 }: any) {
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState<Partial<ProductRow>>({});
+  const [editForm, setEditForm] = useState<any>({});
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  // Preserve form data in a ref for the stable save handler
+  // FIX 2: Stable Reference for the Update Handler
   const editFormRef = useRef(editForm);
   useEffect(() => {
     editFormRef.current = editForm;
@@ -60,6 +61,11 @@ export default function ProductsTable({
       formData.append("name", currentForm.name || "");
       formData.append("base_price", currentForm.base_price?.toString() || "0");
       formData.append("category_id", currentForm.category_id || "");
+      formData.append("stock", currentForm.stock?.toString() || "0");
+      formData.append(
+        "track_inventory",
+        currentForm.track_inventory ? "true" : "false"
+      );
       formData.append("business_id", businessId);
       if (selectedFile) formData.append("image", selectedFile);
 
@@ -69,45 +75,42 @@ export default function ProductsTable({
         setEditForm({});
         setSelectedFile(null);
       } catch (err) {
-        console.error(err);
+        console.error("Update failed:", err);
       }
     },
     [businessId, businessSlug, selectedFile]
   );
 
+  // FIX 3: Static Column Definitions
   const columns = useMemo(
     () => [
       columnHelper.accessor("image_url", {
         header: "Image",
-        cell: (info) => {
-          const isEditing = editingId === info.row.original.id;
-          const url = info.getValue();
-          return (
-            <div className="flex flex-col gap-2">
-              <div className="relative w-12 h-12 rounded border overflow-hidden bg-gray-50">
-                {url ? (
-                  <Image
-                    src={url}
-                    alt="Product"
-                    fill
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-[10px] text-gray-400">
-                    No Img
-                  </div>
-                )}
-              </div>
-              {isEditing && (
-                <input
-                  type="file"
-                  className="text-[10px] w-32"
-                  onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+        cell: (info) => (
+          <div className="flex flex-col gap-2">
+            <div className="relative w-12 h-12 rounded border overflow-hidden bg-gray-50">
+              {info.getValue() ? (
+                <Image
+                  src={info.getValue()!}
+                  alt="Product"
+                  fill
+                  className="object-cover"
                 />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-[10px] text-gray-400">
+                  No Img
+                </div>
               )}
             </div>
-          );
-        },
+            {editingId === info.row.original.id && (
+              <input
+                type="file"
+                className="text-[10px] w-32"
+                onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+              />
+            )}
+          </div>
+        ),
       }),
       columnHelper.accessor("name", {
         header: "Name",
@@ -116,7 +119,7 @@ export default function ProductsTable({
             <StableInput
               initialValue={editForm.name ?? info.getValue() ?? ""}
               onSave={(val: string) =>
-                setEditForm((p) => ({ ...p, name: val }))
+                setEditForm((p: any) => ({ ...p, name: val }))
               }
             />
           ) : (
@@ -131,7 +134,7 @@ export default function ProductsTable({
               type="number"
               initialValue={editForm.base_price ?? info.getValue() ?? 0}
               onSave={(val: string) =>
-                setEditForm((p) => ({ ...p, base_price: parseFloat(val) || 0 }))
+                setEditForm((p: any) => ({ ...p, base_price: val }))
               }
             />
           ) : (
@@ -143,17 +146,52 @@ export default function ProductsTable({
             </span>
           ),
       }),
+      columnHelper.accessor("stock", {
+        header: "Stock",
+        cell: (info) =>
+          editingId === info.row.original.id ? (
+            <StableInput
+              type="number"
+              initialValue={editForm.stock ?? info.getValue() ?? 0}
+              onSave={(val: string) =>
+                setEditForm((p: any) => ({ ...p, stock: val }))
+              }
+            />
+          ) : (
+            <span>{info.getValue() ?? 0}</span>
+          ),
+      }),
+      columnHelper.accessor("track_inventory" as any, {
+        header: "Track",
+        cell: (info: any) =>
+          editingId === info.row.original.id ? (
+            <input
+              type="checkbox"
+              checked={editForm.track_inventory ?? info.getValue() ?? false}
+              onChange={(e) =>
+                setEditForm((p: any) => ({
+                  ...p,
+                  track_inventory: e.target.checked,
+                }))
+              }
+            />
+          ) : (
+            <span>{info.getValue() ? "Yes" : "No"}</span>
+          ),
+      }),
       columnHelper.accessor("category_id", {
         header: "Category",
         cell: (info) => {
-          const isEditing = editingId === info.row.original.id;
-          if (isEditing) {
+          if (editingId === info.row.original.id) {
             return (
               <select
                 className="border rounded px-2 py-1 w-full text-sm"
                 value={editForm.category_id ?? info.getValue() ?? ""}
                 onChange={(e) =>
-                  setEditForm((p) => ({ ...p, category_id: e.target.value }))
+                  setEditForm((p: any) => ({
+                    ...p,
+                    category_id: e.target.value,
+                  }))
                 }
               >
                 <option value="">Select Category</option>
@@ -165,7 +203,6 @@ export default function ProductsTable({
               </select>
             );
           }
-          // Restore category name display from joined data
           return (
             <span>
               {(info.row.original as any).categories?.name || "Uncategorized"}
@@ -181,7 +218,7 @@ export default function ProductsTable({
             {editingId === info.row.original.id ? (
               <button
                 onClick={() => handleUpdate(info.row.original.id)}
-                className="text-green-600 font-bold hover:underline"
+                className="text-green-600 font-bold"
               >
                 Save
               </button>
@@ -191,7 +228,7 @@ export default function ProductsTable({
                   setEditingId(info.row.original.id);
                   setEditForm(info.row.original);
                 }}
-                className="text-blue-600 hover:underline"
+                className="text-blue-600"
               >
                 Edit
               </button>
@@ -201,7 +238,7 @@ export default function ProductsTable({
                 confirm("Delete?") &&
                 deleteProduct(info.row.original.id, businessSlug)
               }
-              className="text-red-600 hover:underline"
+              className="text-red-600"
             >
               Delete
             </button>
@@ -210,7 +247,14 @@ export default function ProductsTable({
       }),
       // eslint-disable-next-line react-hooks/exhaustive-deps
     ],
-    [editingId, categories, businessSlug, handleUpdate]
+    [
+      editingId,
+      editForm.track_inventory,
+      editForm.category_id,
+      categories,
+      businessSlug,
+      handleUpdate,
+    ]
   );
 
   const table = useReactTable({
@@ -237,7 +281,7 @@ export default function ProductsTable({
           {table.getRowModel().rows.map((row) => (
             <tr key={row.original.id} className="hover:bg-gray-50/50">
               {row.getVisibleCells().map((cell) => (
-                <td key={cell.id} className="p-4">
+                <td key={cell.id} className="px-4 py-4">
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </td>
               ))}
