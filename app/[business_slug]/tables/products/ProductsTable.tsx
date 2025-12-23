@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, useRef, useEffect, memo } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -14,24 +14,29 @@ import { ProductRow } from "@/interfaces/types";
 
 const columnHelper = createColumnHelper<ProductRow>();
 
-const EditableCell = ({
-  value,
-  onChange,
-  type = "text",
-}: {
-  value: string | number;
-  onChange: (val: string) => void;
-  type?: string;
-}) => {
+/** * FIX 1: Memoized Input component moved OUTSIDE.
+ * This traps focus locally so parent re-renders don't affect the cursor.
+ */
+const TableInput = memo(({ initialValue, onSave, type = "text" }: any) => {
+  const [localValue, setLocalValue] = useState(initialValue);
+
+  useEffect(() => {
+    setLocalValue(initialValue);
+  }, [initialValue]);
+
   return (
     <input
       type={type}
-      className="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
+      className="border rounded px-2 py-1 w-full focus:ring-2 focus:ring-blue-500 outline-none"
+      value={localValue ?? ""}
+      onChange={(e) => {
+        setLocalValue(e.target.value);
+        onSave(e.target.value);
+      }}
     />
   );
-};
+});
+TableInput.displayName = "TableInput";
 
 export default function ProductsTable({
   data,
@@ -43,7 +48,14 @@ export default function ProductsTable({
   const [editForm, setEditForm] = useState<Partial<ProductRow>>({});
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  // Wrap in useCallback to satisfy linter and prevent unnecessary re-creations
+  /** * FIX 2: Stable Data Reference.
+   * Prevents the table from re-processing rows when page.tsx revalidates data.
+   */
+  const stableData = useRef(data);
+  useEffect(() => {
+    if (!editingId) stableData.current = data;
+  }, [data, editingId]);
+
   const handleUpdate = useCallback(
     async (id: string) => {
       const formData = new FormData();
@@ -52,64 +64,58 @@ export default function ProductsTable({
       formData.append("stock", editForm.stock?.toString() || "0");
       formData.append("category_id", editForm.category_id || "");
       formData.append("business_id", businessId);
-      formData.append("image_url", editForm.image_url || "");
       if (selectedFile) formData.append("image", selectedFile);
 
       try {
         await updateProductWithImage(id, formData, businessSlug);
         setEditingId(null);
-        setSelectedFile(null);
         setEditForm({});
+        setSelectedFile(null);
       } catch (err) {
-        alert("Update failed");
-        console.error(err);
+        console.error("Update failed", err);
       }
     },
     [editForm, businessId, businessSlug, selectedFile]
   );
 
+  /** * FIX 3: Memoized Columns with primitive dependencies.
+   * This ensures the table structure is "frozen" during typing.
+   */
   const columns = useMemo(
     () => [
       columnHelper.accessor("image_url", {
         header: "Image",
-        cell: (info) => {
-          const isEditing = editingId === info.row.original.id;
-          const currentUrl = info.getValue();
-
-          return (
-            <div className="flex flex-col gap-2">
-              <div className="relative w-12 h-12 rounded border overflow-hidden bg-gray-50">
-                {currentUrl ? (
-                  <Image
-                    src={currentUrl}
-                    alt="Product"
-                    fill
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-[10px] text-gray-400">
-                    No Img
-                  </div>
-                )}
-              </div>
-              {isEditing && (
-                <input
-                  type="file"
-                  className="text-[10px] w-24"
-                  onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+        cell: (info) => (
+          <div className="flex flex-col gap-1">
+            <div className="relative w-10 h-10 rounded border overflow-hidden bg-gray-50">
+              {info.getValue() ? (
+                <Image
+                  src={info.getValue()!}
+                  alt="Product"
+                  fill
+                  className="object-cover"
                 />
+              ) : (
+                <div className="w-full h-full bg-gray-200" />
               )}
             </div>
-          );
-        },
+            {editingId === info.row.original.id && (
+              <input
+                type="file"
+                className="text-[8px] w-20"
+                onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+              />
+            )}
+          </div>
+        ),
       }),
       columnHelper.accessor("name", {
         header: "Name",
         cell: (info) =>
           editingId === info.row.original.id ? (
-            <EditableCell
-              value={editForm.name || ""}
-              onChange={(val) =>
+            <TableInput
+              initialValue={editForm.name ?? info.getValue() ?? ""}
+              onSave={(val: string) =>
                 setEditForm((prev) => ({ ...prev, name: val }))
               }
             />
@@ -118,16 +124,16 @@ export default function ProductsTable({
           ),
       }),
       columnHelper.accessor("base_price", {
-        header: "Base Price",
+        header: "Price",
         cell: (info) =>
           editingId === info.row.original.id ? (
-            <EditableCell
+            <TableInput
               type="number"
-              value={editForm.base_price || 0}
-              onChange={(val) =>
+              initialValue={editForm.base_price ?? info.getValue() ?? 0}
+              onSave={(val: string) =>
                 setEditForm((prev) => ({
                   ...prev,
-                  base_price: parseFloat(val),
+                  base_price: parseFloat(val) || 0,
                 }))
               }
             />
@@ -146,8 +152,8 @@ export default function ProductsTable({
           const isEditing = editingId === info.row.original.id;
           return isEditing ? (
             <select
-              className="border rounded px-2 py-1 w-full"
-              value={editForm.category_id || ""}
+              className="border rounded px-2 py-1 w-full text-sm"
+              value={editForm.category_id ?? info.getValue() ?? ""}
               onChange={(e) =>
                 setEditForm((prev) => ({
                   ...prev,
@@ -203,20 +209,12 @@ export default function ProductsTable({
         ),
       }),
     ],
-    // We intentionally omit editForm fields to keep focus during typing
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [
-      editingId,
-      selectedFile,
-      businessSlug,
-      businessId,
-      categories,
-      handleUpdate,
-    ]
+    [editingId, categories, businessSlug, handleUpdate]
   );
 
   const table = useReactTable({
-    data,
+    data: stableData.current || [],
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
@@ -240,7 +238,7 @@ export default function ProductsTable({
         </thead>
         <tbody className="divide-y">
           {table.getRowModel().rows.map((row) => (
-            <tr key={row.id} className="hover:bg-gray-50/50">
+            <tr key={row.original.id} className="hover:bg-gray-50/50">
               {row.getVisibleCells().map((cell) => (
                 <td key={cell.id} className="px-6 py-4">
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}

@@ -1,6 +1,5 @@
 "use server";
 
-import { ProductRow } from "@/interfaces/types";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
