@@ -14,10 +14,6 @@ import { ProductRow } from "@/interfaces/types";
 
 const columnHelper = createColumnHelper<ProductRow>();
 
-/**
- * FIX 1: Isolated Input Component
- * Manages its own focus and local state to prevent jumping.
- */
 const StableInput = memo(({ initialValue, onSave, type = "text" }: any) => {
   const [localValue, setLocalValue] = useState(initialValue);
   useEffect(() => {
@@ -48,7 +44,6 @@ export default function ProductsTable({
   const [editForm, setEditForm] = useState<any>({});
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  // FIX 2: Stable Reference for the Update Handler
   const editFormRef = useRef(editForm);
   useEffect(() => {
     editFormRef.current = editForm;
@@ -58,6 +53,8 @@ export default function ProductsTable({
     async (id: string) => {
       const currentForm = editFormRef.current;
       const formData = new FormData();
+
+      // Explicitly maintain existing data to prevent NULL updates
       formData.append("name", currentForm.name || "");
       formData.append("base_price", currentForm.base_price?.toString() || "0");
       formData.append("category_id", currentForm.category_id || "");
@@ -67,7 +64,14 @@ export default function ProductsTable({
         currentForm.track_inventory ? "true" : "false"
       );
       formData.append("business_id", businessId);
-      if (selectedFile) formData.append("image", selectedFile);
+
+      // If a new file is selected, append it; otherwise, server-side logic
+      // should keep the old image_url
+      if (selectedFile) {
+        formData.append("image", selectedFile);
+      } else {
+        formData.append("image_url", currentForm.image_url || "");
+      }
 
       try {
         await updateProductWithImage(id, formData, businessSlug);
@@ -81,36 +85,46 @@ export default function ProductsTable({
     [businessId, businessSlug, selectedFile]
   );
 
-  // FIX 3: Static Column Definitions
   const columns = useMemo(
     () => [
       columnHelper.accessor("image_url", {
         header: "Image",
-        cell: (info) => (
-          <div className="flex flex-col gap-2">
-            <div className="relative w-12 h-12 rounded border overflow-hidden bg-gray-50">
-              {info.getValue() ? (
-                <Image
-                  src={info.getValue()!}
-                  alt="Product"
-                  fill
-                  className="object-cover"
+        cell: (info) => {
+          const isEditing = editingId === info.row.original.id;
+          const url = info.getValue();
+
+          // FIX: Only show the local preview if THIS row is being edited
+          const displayUrl =
+            isEditing && selectedFile ? URL.createObjectURL(selectedFile) : url;
+
+          return (
+            <div className="flex flex-col gap-2">
+              <div className="relative w-12 h-12 rounded border overflow-hidden bg-gray-50">
+                {displayUrl ? (
+                  <Image
+                    src={displayUrl}
+                    alt="Product"
+                    fill
+                    className="object-cover"
+                    unoptimized={isEditing && !!selectedFile}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-[10px] text-gray-400">
+                    No Img
+                  </div>
+                )}
+              </div>
+              {isEditing && (
+                <input
+                  type="file"
+                  className="text-[10px] w-32"
+                  accept="image/*"
+                  onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
                 />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-[10px] text-gray-400">
-                  No Img
-                </div>
               )}
             </div>
-            {editingId === info.row.original.id && (
-              <input
-                type="file"
-                className="text-[10px] w-32"
-                onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-              />
-            )}
-          </div>
-        ),
+          );
+        },
       }),
       columnHelper.accessor("name", {
         header: "Name",
@@ -247,14 +261,7 @@ export default function ProductsTable({
       }),
       // eslint-disable-next-line react-hooks/exhaustive-deps
     ],
-    [
-      editingId,
-      editForm.track_inventory,
-      editForm.category_id,
-      categories,
-      businessSlug,
-      handleUpdate,
-    ]
+    [editingId, selectedFile, categories, businessSlug, handleUpdate]
   );
 
   const table = useReactTable({
